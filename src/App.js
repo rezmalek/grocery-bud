@@ -3,54 +3,77 @@ import List from './List';
 import Alert from './Alert';
 
 function App() {
-  const [item, setItem] = useState('');
+  const [name, setName] = useState('');
   const [list, setList] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editID, setEditID] = useState(null);
-  const [alert, setAlert] = useState({ show: false, message: '', type: '' });
+  const [alert, setAlert] = useState({ show: false, msg: '', type: '' });
 
   // handle submit
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!item) {
-     displayAlert(true, 'please enter a value', 'danger')
-    } else if (item && isEditing) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name) {
+      showAlert(true, 'danger', 'please enter value');
+    } else if (name && isEditing) {
+      setList(
+        list.map((item) => {
+          if (item.id === editID) {
+            return { ...item, title: name };
+          }
+          return item;
+        })
+      );
+      setName('');
+      setEditID(null);
+      setIsEditing(false);
+      showAlert(true, 'success', 'value changed');
     } else {
-      displayAlert(true, 'new item added', 'success')
-      const newItem = { title: item, id: new Date().getTime().toString() };
+      showAlert(true, 'success', 'item added to the list');
+      const newItem = { id: new Date().getTime().toString(), title: name };
+
       setList([...list, newItem]);
-      setItem('');
+      setName('');
     }
   };
 
-  // display  alert
-  const displayAlert = (show = false, message = '', type = '') => {
-    setAlert({show, message, type})
+  // display alert
+  const showAlert = (show = false, type = '', msg = '') => {
+    setAlert({ show, type, msg });
   };
 
   // clear items
-  const clearItems = () => {
-    displayAlert(true, 'empty list', 'danger');
-    setList([])
-  }
+  const clearList = () => {
+    showAlert(true, 'danger', 'empty list');
+    setList([]);
+  };
 
   // remove item
   const removeItem = (id) => {
-    displayAlert(true, 'item removed', 'danger');
-    setList(list.filter((item)=> item.id !== id))
-  }
+    showAlert(true, 'danger', 'item removed');
+    setList(list.filter((item) => item.id !== id));
+  };
+
+  // edit item
+  const editItem = (id) => {
+    const specificItem = list.find((item) => item.id === id);
+    setIsEditing(true);
+    setEditID(id);
+    setName(specificItem.title);
+  };
+
   return (
     <section className='section-center'>
       <form className='grocery-form' onSubmit={handleSubmit}>
-        {alert.show && <Alert {...alert} removeAlert={displayAlert} list={list}/>}
+        {alert.show && <Alert {...alert} removeAlert={showAlert} list={list} />}
+
         <h3>grocery bud</h3>
         <div className='form-control'>
           <input
             type='text'
             className='grocery'
-            placeholder='e.g. milk'
-            vlaue={item}
-            onChange={(event) => setItem(event.target.value)}
+            placeholder='e.g. eggs'
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
           <button type='submit' className='submit-btn'>
             {isEditing ? 'edit' : 'submit'}
@@ -59,8 +82,10 @@ function App() {
       </form>
       {list.length > 0 && (
         <div className='grocery-container'>
-          <List items={list} removeItem={removeItem}/>
-          <button className='clear-btn' onClick={clearItems}>Clear Items</button>
+          <List items={list} removeItem={removeItem} editItem={editItem} />
+          <button className='clear-btn' onClick={clearList}>
+            clear items
+          </button>
         </div>
       )}
     </section>
