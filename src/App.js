@@ -2,9 +2,19 @@ import React, { useState, useEffect } from 'react';
 import List from './List';
 import Alert from './Alert';
 
+// get local storage
+const getLocalStorage =() => {
+  let list = localStorage.getItem('list');
+  if(list) {
+    return JSON.parse(list)
+  } else {
+    return []
+  }
+}
+
 function App() {
   const [name, setName] = useState('');
-  const [list, setList] = useState([]);
+  const [list, setList] = useState(getLocalStorage());
   const [isEditing, setIsEditing] = useState(false);
   const [editID, setEditID] = useState(null);
   const [alert, setAlert] = useState({ show: false, msg: '', type: '' });
@@ -30,7 +40,6 @@ function App() {
     } else {
       showAlert(true, 'success', 'item added to the list');
       const newItem = { id: new Date().getTime().toString(), title: name };
-
       setList([...list, newItem]);
       setName('');
     }
@@ -61,17 +70,20 @@ function App() {
     setName(specificItem.title);
   };
 
+  // useEffect - localStorage
+  useEffect(()=> {
+    localStorage.setItem('list', JSON.stringify(list))
+  }, [list])
   return (
     <section className='section-center'>
       <form className='grocery-form' onSubmit={handleSubmit}>
         {alert.show && <Alert {...alert} removeAlert={showAlert} list={list} />}
-
         <h3>grocery bud</h3>
         <div className='form-control'>
           <input
             type='text'
             className='grocery'
-            placeholder='e.g. eggs'
+            placeholder='e.g. milk'
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
